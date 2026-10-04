@@ -154,16 +154,23 @@ async function stopSession(reason) {
   setTimeout(async () => { if (session && session.sid === s.sid) await finishSession(reason); }, 10000);
 }
 
+function broadcastTab(tabId, active) {
+  if (tabId === undefined || tabId === null) return;
+  chrome.tabs.sendMessage(tabId, { to: 'cs', type: 'tab-session', active }).catch(() => {});
+}
+
 async function finishSession(reason) {
   const s = session;
   session = null; await saveSession();
   await setBadge('idle');
+  if (s) broadcastTab(s.tabId, false);
   if (s) await toTab(s.tabId, s.frameId, { type: 'state', state: 'idle', reason, sid: s.sid });
 }
 
 async function failSession(code, message) {
   const s = session;
   session = null; await saveSession();
+  if (s) broadcastTab(s.tabId, false);
   await setBadge('error');
   setTimeout(() => { if (!session) setBadge('idle'); }, 4000);
   if (s) await toTab(s.tabId, s.frameId, { type: 'error', code, message, sid: s.sid });
@@ -185,6 +192,7 @@ async function onEngineEvent(m) {
     case 'listening':
       s.state = 'listening'; s.engine = m.engine; await saveSession();
       await setBadge('listening', s.lang);
+      if (!s.extPage) broadcastTab(s.tabId, true);
       await toTab(s.tabId, s.frameId, { type: 'state', state: 'listening', engine: m.engine, lang: s.lang, sid: s.sid });
       break;
     case 'status': await toTab(s.tabId, s.frameId, { type: 'status', text: m.text, sid: s.sid }); break;

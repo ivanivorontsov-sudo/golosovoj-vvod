@@ -50,8 +50,11 @@ async function stopAndWait() {
   await waitFor(async () => (await sessionState()) === 'none', 12000);
   await sleep(550);
 }
+const ONLY = process.env.ONLY ? new RegExp(process.env.ONLY) : null;
 async function test(name, fn) {
+  if (ONLY && !ONLY.test(name)) return;
   currentTest = name;
+  console.log('  state before', name, await sessionState());
   const t0 = Date.now();
   try { const r = await fn(); results.push({ name, ok: r.ok, got: r.got, want: r.want, ms: Date.now() - t0 }); }
   catch (e) { results.push({ name, ok: false, got: 'EXCEPTION ' + (e.stack || e).toString().slice(0, 300), ms: Date.now() - t0 }); }
@@ -60,11 +63,12 @@ async function test(name, fn) {
   try { await stopAndWait(); } catch {}
 }
 // диктует фразы в поле и сравнивает результат
+const dbg = (m) => { if (process.env.DEBUG) console.log('   ', new Date().toISOString().slice(11, 19), m); };
 async function dictate({ focus, read, script, want, start = hotkey, cmp = (a, b) => a === b, shot }) {
-  await setMock(script);
-  await focus();
+  await setMock(script); dbg('mock set');
+  await focus(); dbg('focused');
   await sleep(150);
-  await start();
+  await start(); dbg('started');
   const ok = await waitFor(async () => cmp(await read(), want), 7000);
   if (shot) await page.screenshot({ path: path.join(OUT, `${tag}-${shot}.png`) });
   return { ok: !!ok, got: await read(), want };
@@ -168,6 +172,7 @@ await test('без поля ввода диктовка не стартует (�
   await page.reload({ waitUntil: 'load' }); await sleep(800); await page.click('h3');
   await hotkey(); await sleep(1500);
   const st = await sessionState();
+  if (process.env.DEBUG) console.log('DEBUG session', JSON.stringify(await ctlEval(async () => (await chrome.runtime.sendMessage({ to: 'bg', type: 'get-state' })).session)), 'page tab url', page.url(), 'active el', await page.evaluate(() => document.activeElement && document.activeElement.tagName), 'tabs', JSON.stringify(await ctlEval(async () => (await chrome.tabs.query({})).map(t => [t.id, t.active, t.url]))));
   return { ok: st === 'none', got: st, want: 'none' };
 });
 await test('повторное нажатие горячей клавиши останавливает запись', async () => {

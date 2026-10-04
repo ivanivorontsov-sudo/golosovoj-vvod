@@ -25,6 +25,7 @@
   let savedRange = null;
   let state = 'idle', sid = 0, lang = S.lang, engine = null;
   let lastInsert = null;
+  let tabActive = false;      // идёт ли диктовка в этой вкладке (в любом фрейме)
 
   const send = (m) => { try { return chrome.runtime.sendMessage(Object.assign({ to: 'bg' }, m)).catch(() => null); } catch { return Promise.resolve(null); } };
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -53,6 +54,8 @@
     return null;
   }
   function currentField(strict) {
+    // strict: опрос всех фреймов — отвечает только тот, у которого реально фокус
+    if (strict && !document.hasFocus()) return null;
     const a = editableOf(deepActive());
     if (a) return a;
     if (!strict && lastEditable && lastEditable.isConnected) return lastEditable;
@@ -272,7 +275,7 @@
       send({ type: 'toggle' });
       return;
     }
-    if (e.key === 'Escape' && S.escStops && (state === 'listening' || state === 'starting')) send({ type: 'stop', reason: 'esc' });
+    if (e.key === 'Escape' && S.escStops && (state === 'listening' || state === 'starting' || tabActive)) send({ type: 'stop', reason: 'esc' });
   }, true);
 
   /* ---------------- интерфейс (закрытый shadow DOM) ---------------- */
@@ -425,6 +428,7 @@
         sendResponse({ ok: true }); return;
       }
       case 'toast': ui.toast(msg.text); sendResponse({ ok: true }); return;
+      case 'tab-session': tabActive = !!msg.active; return;
       case 'error':
         state = 'idle'; ui.setState('idle');
         ui.toast(ERR[msg.code] || msg.message || ('Ошибка: ' + msg.code), 7000);

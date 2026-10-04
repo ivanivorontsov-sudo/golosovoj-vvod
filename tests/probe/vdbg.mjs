@@ -1,0 +1,12 @@
+import { launch, openExtension } from '../launch.mjs';
+import { startServers } from '../server.mjs';
+const srv = await startServers();
+const L = await launch('/opt/vivaldi/vivaldi-bin', { extensionDir: '/workspace/golosovoj-vvod/extension', extraArgs: ['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream'] });
+const t=(l)=>console.log(new Date().toISOString().slice(11,19), l);
+const { extId, page: ctl } = await openExtension(L.browser); t('ext '+extId);
+const page = await L.browser.newPage(); t('newPage');
+await page.goto(srv.url, { waitUntil: 'load' }); t('goto');
+console.log(await page.evaluate(()=>1+1)); t('eval');
+await page.click('#inp'); t('click');
+await page.bringToFront(); await page.click('#inp'); t('click2');
+await L.close(); srv.close(); process.exit(0);

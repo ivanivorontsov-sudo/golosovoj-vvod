@@ -16,7 +16,7 @@ export async function launch(exe, { extensionDir, extraArgs = [], headless = fal
   let browser;
   for (let i = 0; i < 60 && !browser; i++) {
     await new Promise(r => setTimeout(r, 500));
-    try { browser = await puppeteer.connect({ browserURL: `http://127.0.0.1:${port}`, defaultViewport: null }); } catch {}
+    try { browser = await puppeteer.connect({ browserURL: `http://127.0.0.1:${port}`, defaultViewport: null, protocolTimeout: 30000 }); } catch {}
   }
   if (!browser) { proc.kill('SIGKILL'); throw new Error('cannot connect: ' + err.slice(-2000)); }
   const close = async () => { try { await browser.close(); } catch {} proc.kill('SIGKILL'); await new Promise(r => setTimeout(r, 500)); if (!keepProfile) { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} } };

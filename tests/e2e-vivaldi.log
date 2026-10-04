@@ -1,0 +1,53 @@
+browser: vivaldi Chrome/8.2.4133.80 extension id: cnpdmicfmpmibmhikomenonffcmlidjc
+  state before input: команды пунктуации и заглавная буква none
+PASS input: команды пунктуации и заглавная буква
+  state before input: вставка в позицию курсора none
+PASS input: вставка в позицию курсора
+  state before input type=email none
+PASS input type=email
+  state before textarea: «новая строка» и продолжение после точки none
+PASS textarea: «новая строка» и продолжение после точки
+  state before contenteditable: «!» и «новый абзац» none
+PASS contenteditable: «!» и «новый абзац»
+  state before iframe того же источника none
+PASS iframe того же источника
+  state before iframe другого источника (OOPIF) none
+PASS iframe другого источника (OOPIF)
+  state before iframe с designMode none
+PASS iframe с designMode
+  state before shadow DOM: input none
+PASS shadow DOM: input
+  state before shadow DOM: contenteditable none
+PASS shadow DOM: contenteditable
+  state before React controlled input (состояние React обновилось) none
+PASS React controlled input (состояние React обновилось)
+  state before Quill none
+PASS Quill
+  state before ProseMirror none
+PASS ProseMirror
+  state before Lexical none
+PASS Lexical
+  state before Draft.js none
+PASS Draft.js
+  state before Draft.js: редактор жив после вставки, без ошибок React none
+PASS Draft.js: редактор жив после вставки, без ошибок React
+  state before голосовая команда «удали последнее» none
+PASS голосовая команда «удали последнее»
+  state before голосовая команда «стоп запись» останавливает диктовку none
+PASS голосовая команда «стоп запись» останавливает диктовку
+  state before кнопка 🎤 у поля запускает диктовку (фокус остаётся в поле) none
+PASS кнопка 🎤 у поля запускает диктовку (фокус остаётся в поле)
+  state before индикатор записи: промежуточный текст (скриншот) none
+PASS индикатор записи: промежуточный текст (скриншот)
+  state before без поля ввода диктовка не стартует (подсказка) none
+PASS без поля ввода диктовка не стартует (подсказка)
+  state before повторное нажатие горячей клавиши останавливает запись none
+PASS повторное нажатие горячей клавиши останавливает запись
+  state before значок расширения запускает диктовку (chrome.action) none
+PASS значок расширения запускает диктовку (chrome.action)
+  state before настройки: разрешение микрофона none
+PASS настройки: разрешение микрофона
+  state before настройки: диктовка в поле «Проверка» none
+PASS настройки: диктовка в поле «Проверка»
+
+vivaldi: 25/25 passed
