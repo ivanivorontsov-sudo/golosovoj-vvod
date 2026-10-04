@@ -1,17 +1,23 @@
 {
   "name": "golosovoj-vvod",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Голосовой ввод — MV3-расширение для Chrome/Vivaldi",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node --test tests/unit",
+    "build:fixtures": "esbuild tests/fixtures/editors.jsx --bundle --outfile=tests/fixtures/editors.bundle.js --define:process.env.NODE_ENV='\"production\"' --define:global=window --loader:.js=jsx --minify",
+    "test:e2e": "npm run build:fixtures && xvfb-run -a -s \"-screen 0 1280x1100x24\" node tests/e2e.mjs",
+    "test:e2e:vivaldi": "npm run build:fixtures && xvfb-run -a -s \"-screen 0 1280x1100x24\" node tests/e2e.mjs /opt/vivaldi/vivaldi-bin",
+    "test:cloud": "xvfb-run -a -s \"-screen 0 1280x1000x24\" node tests/cloud-mock.mjs /opt/vivaldi/vivaldi-bin",
+    "test:audio": "xvfb-run -a -s \"-screen 0 1280x1000x24\" node tests/real-audio.mjs",
+    "pack": "bash tools/pack.sh"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Иван Воронцов",
+  "license": "UNLICENSED",
   "devDependencies": {
     "@lexical/plain-text": "^0.52.0",
     "@lexical/rich-text": "^0.52.0",
@@ -30,5 +36,6 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "ws": "^8.22.0"
-  }
+  },
+  "private": true
 }
