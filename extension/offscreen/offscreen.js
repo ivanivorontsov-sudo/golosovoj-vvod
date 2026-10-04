@@ -231,8 +231,12 @@ function cloudEngine(h, sess) {
   let pre = [], seg = [];
   let queue = Promise.resolve(), pending = 0, punct = sess.settings.cloudPunctuation !== false, dead = false;
   const lang = sess.lang;
+  // адрес можно подменить только на локальный (для автотестов)
+  const ep = sess.settings.cloudEndpoint;
+  const ENDPOINT = (ep && /^http:\/\/(localhost|127\.0\.0\.1):\d+\//.test(ep)) ? ep : 'https://speech.googleapis.com/v1/speech:recognize';
 
   function onFrame(frame, rms) {
+    if (!isFinite(rms)) rms = 0;
     floor = floor === null ? rms : (rms < floor ? rms : floor + (rms - floor) * 0.01);
     const loud = rms > Math.max(0.01, floor * 3);
     if (!inSpeech) {
@@ -265,13 +269,13 @@ function cloudEngine(h, sess) {
     queue = queue.then(async () => {
       if (dead) return;
       try {
-        let res = await fetch('https://speech.googleapis.com/v1/speech:recognize?key=' + encodeURIComponent(key), {
+        let res = await fetch(ENDPOINT + '?key=' + encodeURIComponent(key), {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), credentials: 'omit', cache: 'no-store'
         });
         let json = await res.json().catch(() => ({}));
         if (!res.ok && punct && res.status === 400 && /punctuation/i.test(JSON.stringify(json))) {
           punct = false; delete body.config.enableAutomaticPunctuation;
-          res = await fetch('https://speech.googleapis.com/v1/speech:recognize?key=' + encodeURIComponent(key), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), credentials: 'omit' });
+          res = await fetch(ENDPOINT + '?key=' + encodeURIComponent(key), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), credentials: 'omit' });
           json = await res.json().catch(() => ({}));
         }
         if (!res.ok) {
@@ -296,9 +300,9 @@ function cloudEngine(h, sess) {
     const ratio = sr / RATE;
     let pos = carry;
     while (pos + ratio <= data.length) {
-      const a = Math.floor(pos), b = Math.min(data.length, Math.floor(pos + ratio));
+      const a = Math.max(0, Math.floor(pos)), b = Math.min(data.length, Math.max(a + 1, Math.floor(pos + ratio)));
       let acc = 0; for (let i = a; i < b; i++) acc += data[i];
-      const v = acc / Math.max(1, b - a);
+      const v = (acc / Math.max(1, b - a)) || 0;
       const s = Math.max(-1, Math.min(1, v));
       frameBuf[frameLen++] = s < 0 ? s * 0x8000 : s * 0x7fff;
       frameSq += s * s;

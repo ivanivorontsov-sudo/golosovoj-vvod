@@ -5,6 +5,13 @@ import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path'
 export async function launch(exe, { extensionDir, extraArgs = [], headless = false, profileDir, keepProfile = false } = {}) {
   const profile = profileDir || fs.mkdtempSync(path.join(os.tmpdir(), 'gv-prof-'));
   if (profileDir) fs.mkdirSync(profileDir, { recursive: true });
+  if (extensionDir && /google-chrome/.test(exe)) {
+    // Google Chrome 137+ игнорирует --load-extension: грузим через CDP (Extensions.loadUnpacked) по pipe
+    const browser = await puppeteer.launch({ executablePath: exe, headless, pipe: true, enableExtensions: [extensionDir], userDataDir: profile,
+      defaultViewport: null, protocolTimeout: 30000, args: ['--no-first-run', '--no-default-browser-check', ...extraArgs] });
+    const close = async () => { try { await browser.close(); } catch {} if (!keepProfile) { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} } };
+    return { browser, close, port: 0, profile, stderr: () => '' };
+  }
   const port = 9400 + Math.floor(Math.random() * 500);
   const args = [`--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check',
     '--disable-features=DisableLoadExtensionCommandLineSwitch', ...extraArgs];
