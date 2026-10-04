@@ -1,0 +1,30 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Тестовая страница голосового ввода</title>
+<link rel="stylesheet" href="/node_modules/quill/dist/quill.snow.css">
+<link rel="stylesheet" href="/node_modules/prosemirror-view/style/prosemirror.css">
+<style>body{font:14px sans-serif;padding:10px;max-width:900px} .row{margin:8px 0} input,textarea{width:420px;padding:6px;font-size:14px}
+[contenteditable]{border:1px solid #999;min-height:36px;padding:6px} iframe{width:460px;height:70px;border:1px dashed #888} #quill{height:60px} #pm .ProseMirror{border:1px solid #999;min-height:36px;padding:4px} #lexical{border:1px solid #999;min-height:36px;padding:4px}</style></head>
+<body>
+<h3>Поля</h3>
+<div class="row"><input id="inp" placeholder="input"></div>
+<div class="row"><input id="inp-caret" value="Hello world"></div>
+<div class="row"><input id="email" type="email" placeholder="email"></div>
+<div class="row"><textarea id="ta" rows="3">Строка один.</textarea></div>
+<div class="row"><div id="ce" contenteditable="true"></div></div>
+<div class="row"><iframe id="ifr-same" src="/frame.html"></iframe></div>
+<div class="row"><iframe id="ifr-cross"></iframe></div>
+<div class="row"><iframe id="ifr-design" srcdoc="<html><body style='min-height:40px'></body></html>"></iframe></div>
+<div class="row" id="shadow-host"></div>
+<h3>Фреймворки и редакторы</h3>
+<div class="row" id="react-root"></div>
+<div class="row"><div id="quill"></div></div>
+<div class="row"><div id="pm"></div></div>
+<div class="row"><div id="lexical" contenteditable="true"></div></div>
+<div class="row" id="draft-root"></div>
+<script>
+  const h = document.getElementById('shadow-host').attachShadow({ mode: 'open' });
+  h.innerHTML = '<input id="s-inp" placeholder="shadow input" style="width:420px;padding:6px"><div id="s-ce" contenteditable="true" style="border:1px solid #999;min-height:30px;margin-top:6px"></div>';
+  document.getElementById('ifr-cross').src = 'http://127.0.0.1:' + (Number(location.port) + 1) + '/frame.html';
+  document.getElementById('ifr-design').addEventListener('load', e => { e.target.contentDocument.designMode = 'on'; });
+</script>
+<script src="/tests/fixtures/editors.bundle.js"></script>
+</body></html>

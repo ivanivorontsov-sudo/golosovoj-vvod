@@ -1,0 +1,10 @@
+import puppeteer from 'puppeteer-core';
+import { spawn } from 'node:child_process';
+const port=9711;
+const proc=spawn('/opt/vivaldi/vivaldi-bin',[`--remote-debugging-port=${port}`,'--user-data-dir=/tmp/vprof-pp','--no-first-run','--no-default-browser-check','about:blank'],{stdio:'ignore'});
+await new Promise(r=>setTimeout(r,6000));
+const t0=Date.now();
+const b=await puppeteer.connect({browserURL:`http://127.0.0.1:${port}`, defaultViewport:null});
+console.log('connected',Date.now()-t0);
+const p=await b.newPage(); await p.goto('data:text/html,<p>hi</p>'); console.log(await p.evaluate(()=>navigator.userAgent));
+await b.close().catch(()=>{}); proc.kill('SIGKILL'); process.exit(0);

@@ -1,0 +1,12 @@
+import { launch } from '../launch.mjs';
+import http from 'node:http'; import fs from 'node:fs'; import { spawn } from 'node:child_process';
+const [exe, wav, lang, local] = process.argv.slice(2);
+const srv = http.createServer((q,s)=>{s.setHeader('content-type','text/html');s.end(fs.readFileSync(new URL('./probe.html', import.meta.url)))}).listen(0);
+const port = srv.address().port;
+const L = await launch(exe, { extraArgs: ['--use-fake-ui-for-media-stream'] });
+const p = await L.browser.newPage();
+await p.goto(`http://localhost:${port}/`);
+console.log('UA', await p.evaluate(()=>navigator.userAgent));
+setTimeout(()=>spawn('paplay',['-d','vmic',wav]), 2500);
+const r = await p.evaluate(([l,loc])=>window.runProbe(l, loc==='1'), [lang, local]);
+console.log(r.join('\n')); await L.close(); srv.close(); process.exit(0);

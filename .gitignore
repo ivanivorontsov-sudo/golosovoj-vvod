@@ -1,0 +1,6 @@
+node_modules/
+tools-dl/
+.venv/
+dist/
+tests/out/
+tests/fixtures/editors.bundle.js

@@ -1,0 +1,11 @@
+import { chromium } from 'playwright';
+import http from 'node:http'; import fs from 'node:fs';
+const [exe, wav, lang, local] = process.argv.slice(2);
+const srv = http.createServer((q,s)=>{s.setHeader('content-type','text/html');s.end(fs.readFileSync(new URL('./probe.html', import.meta.url)))}).listen(0);
+const port = srv.address().port;
+const b = await chromium.launch({ executablePath: exe, headless:false, args:['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream',`--use-file-for-fake-audio-capture=${wav}%noloop`,'--no-first-run','--no-default-browser-check'] });
+const p = await b.newPage();
+await p.goto(`http://localhost:${port}/`);
+console.log('UA', await p.evaluate(()=>navigator.userAgent));
+const r = await p.evaluate(([l,loc])=>window.runProbe(l, loc==='1'), [lang, local]);
+console.log(r.join('\n')); await b.close(); srv.close();

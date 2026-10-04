@@ -1,0 +1,17 @@
+<!doctype html><meta charset="utf-8"><body><pre id="log"></pre><script>
+const log=(...a)=>{document.getElementById('log').textContent+=a.join(' ')+'\n'; window.__log=(window.__log||[]).concat([a.join(' ')]);};
+window.runProbe=async(lang, local)=>{
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  log('SR exists', !!SR, 'available fn', !!(SR&&SR.available));
+  if(SR&&SR.available){ try{ log('available', await SR.available({langs:[lang],processLocally:true})); }catch(e){log('available err',e.message)} }
+  return new Promise(res=>{
+    const r=new SR(); r.lang=lang; r.interimResults=true; r.continuous=true;
+    if(local) { r.processLocally=true; }
+    r.onstart=()=>log('start'); r.onaudiostart=()=>log('audiostart'); r.onspeechstart=()=>log('speechstart');
+    r.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)log(e.results[i].isFinal?'FINAL':'interim',e.results[i][0].transcript)};
+    r.onerror=e=>log('error',e.error,e.message||'');
+    r.onend=()=>{log('end');res(window.__log)};
+    r.start(); setTimeout(()=>{try{r.stop()}catch(e){}},12000);
+  });
+};
+</script>

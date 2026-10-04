@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Голосовой ввод — настройки</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="options.css">
+</head>
+<body>
+<header>
+  <img src="../icons/icon48.png" alt="" width="40" height="40">
+  <div><h1>Голосовой ввод</h1><div class="sub">Диктовка в любые поля сайтов · версия <span id="ver"></span></div></div>
+</header>
+
+<main>
+<section id="welcome" class="card hl" hidden>
+  <h2>Добро пожаловать!</h2>
+  <ol>
+    <li>Нажмите <b>«Разрешить микрофон»</b> ниже (один раз).</li>
+    <li>Выберите движок. В Vivaldi бесплатное Google-распознавание браузера отключено, поэтому
+      установите <b>офлайн-модель</b> (45 МБ) или укажите <b>ключ Google Cloud</b>.</li>
+    <li>Поставьте курсор в любое поле и нажмите <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>, кнопку 🎤 у поля или значок расширения.</li>
+  </ol>
+</section>
+
+<section class="card" id="sec-mic">
+  <h2>1. Микрофон</h2>
+  <p>Статус: <b id="micState">проверяю…</b></p>
+  <button id="micGrant" class="primary">Разрешить микрофон</button>
+  <p class="hint">Браузер спросит разрешение для расширения «Голосовой ввод». Это нужно сделать один раз — дальше ввод работает на всех сайтах без запросов.
+  Если запрос не появился: значок замка/микрофона слева в адресной строке → Микрофон → Разрешить.</p>
+</section>
+
+<section class="card" id="sec-engine">
+  <h2>2. Движок распознавания</h2>
+  <p class="browser" id="browserNote"></p>
+  <label class="eng"><input type="radio" name="engine" value="auto"><span><b>Авто (рекомендуется)</b> — сначала Google Web Speech; если браузер его не поддерживает (Vivaldi), то Google Cloud (если указан ключ), затем офлайн-модель.</span></label>
+  <label class="eng"><input type="radio" name="engine" value="google"><span><b>Google Web Speech</b> — бесплатно, встроено в браузер. Работает в Google Chrome и Edge. <i>В Vivaldi не работает</i> (ошибка «network»: Vivaldi не платит Google за этот сервис).
+    <span class="st" id="wsState"></span> <button id="wsTest" class="small">Проверить</button></span></label>
+  <label class="eng"><input type="radio" name="engine" value="google-cloud"><span><b>Google Cloud Speech-to-Text</b> — официальный API Google с вашим ключом. Работает в Vivaldi. 60 минут в месяц бесплатно, дальше по тарифу Google.</span></label>
+  <div class="sub-block">
+    <label>API-ключ: <input id="cloudApiKey" type="password" placeholder="AIza…" autocomplete="off" spellcheck="false"></label>
+    <button id="cloudShow" class="small">Показать</button> <button id="cloudTest" class="small">Проверить ключ</button> <span class="st" id="cloudState"></span>
+    <label class="chk"><input type="checkbox" id="cloudPunctuation"> Автоматическая пунктуация Google</label>
+    <details><summary>Как получить ключ (5 минут)</summary>
+      <ol>
+        <li>Откройте <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">console.cloud.google.com</a>, создайте проект.</li>
+        <li>Подключите платёжный аккаунт (Google требует его даже для бесплатных 60 минут).</li>
+        <li>«APIs &amp; Services» → «Library» → <b>Cloud Speech-to-Text API</b> → Enable.</li>
+        <li>«Credentials» → «Create credentials» → «API key». В «API restrictions» оставьте только Speech-to-Text.</li>
+        <li>Скопируйте ключ сюда. Он хранится только в этом браузере.</li>
+      </ol>
+      <p class="hint">Фразы отправляются в Google после паузы в речи, поэтому текст появляется целыми фразами, без «живого» предпросмотра.</p>
+    </details>
+  </div>
+  <label class="eng"><input type="radio" name="engine" value="vosk"><span><b>Офлайн (Vosk)</b> — распознавание прямо на компьютере, без интернета и без ключей. Работает в Vivaldi. Точность ниже, чем у Google, но для диктовки достаточна.</span></label>
+  <div class="sub-block" id="voskBlock"></div>
+  <label class="eng"><input type="radio" name="engine" value="google-local"><span><b>Google на устройстве (экспериментально)</b> — офлайн-движок Google из Chrome (SODA, Chrome 139+).
+    <i>В Vivaldi пакеты скачиваются и движок запускается, но текст не возвращается</i>; в Chrome работает.
+    <button id="localInstall" class="small">Установить языковые пакеты</button> <span class="st" id="localState"></span></span></label>
+</section>
+
+<section class="card" id="sec-lang">
+  <h2>3. Язык диктовки</h2>
+  <label class="chk"><input type="radio" name="lang" value="ru-RU"> Русский</label>
+  <label class="chk"><input type="radio" name="lang" value="en-US"> English (US)</label>
+  <p class="hint">Быстро переключить: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd>, кнопка «RU/EN» в индикаторе записи или правый клик по значку расширения.</p>
+</section>
+
+<section class="card" id="sec-keys">
+  <h2>4. Горячие клавиши</h2>
+  <p><b>Клавиша на страницах:</b> <button id="hotkeyBtn" class="hotkey"></button> <button id="hotkeyReset" class="small">По умолчанию</button><br>
+  <span class="hint">Работает всегда, когда курсор на веб-странице, — даже если Vivaldi перехватывает клавиши расширений. Нажмите кнопку и затем нужное сочетание (например Ctrl+Shift+Пробел).</span></p>
+  <p><b>Клавиша браузера:</b> <span id="cmdKeys">—</span></p>
+  <details open><summary>Как настроить в Vivaldi</summary>
+    <ol>
+      <li>Откройте <code>vivaldi://extensions</code> → меню ☰ слева вверху → <b>«Сочетания клавиш»</b> (или адрес <code>vivaldi://extensions/shortcuts</code>).</li>
+      <li>У «Голосовой ввод» назначьте «Начать / остановить голосовой ввод».</li>
+      <li>Если сочетание не срабатывает, переключите область с «В Vivaldi» на <b>«Глобально»</b> — это известная особенность Vivaldi.</li>
+      <li>Проверьте, что сочетание не занято самим Vivaldi: Настройки → Клавиатура.</li>
+    </ol>
+    <p class="hint">Совет: <kbd>Alt</kbd>+<kbd>Shift</kbd> в Windows может переключать раскладку. Если мешает — выберите другое сочетание, например <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Пробел</kbd>.</p>
+  </details>
+</section>
+
+<section class="card" id="sec-behavior">
+  <h2>5. Поведение</h2>
+  <label class="chk"><input type="checkbox" id="showMicButton"> Показывать кнопку 🎤 у поля ввода</label>
+  <label class="chk"><input type="checkbox" id="voiceCommands"> Голосовые команды пунктуации («запятая», «точка», «новая строка»…)</label>
+  <label class="chk"><input type="checkbox" id="autoCapitalize"> Заглавная буква в начале предложения</label>
+  <label class="chk"><input type="checkbox" id="lowercaseMidSentence"> Строчная буква, если фраза продолжает предложение</label>
+  <label class="chk"><input type="checkbox" id="interimPreview"> Показывать распознаваемый текст до вставки</label>
+  <label class="chk"><input type="checkbox" id="escStops"> Esc останавливает запись</label>
+  <label class="chk"><input type="checkbox" id="sounds"> Звуковой сигнал при старте и остановке</label>
+  <label class="chk">Остановить после тишины: <select id="silenceStopSec">
+    <option value="8">8 с</option><option value="15">15 с</option><option value="30">30 с</option><option value="60">1 мин</option><option value="0">никогда</option></select></label>
+</section>
+
+<section class="card" id="sec-try">
+  <h2>Проверка</h2>
+  <p>Нажмите в поле и скажите, например: «Привет запятая это проверка голосового ввода точка».</p>
+  <textarea id="tryArea" rows="4" placeholder="Поставьте курсор сюда и нажмите Alt+Shift+V или 🎤"></textarea>
+</section>
+
+<section class="card" id="sec-cmds">
+  <h2>Голосовые команды</h2>
+  <table class="cmds">
+    <tr><th>Скажите</th><th>Будет</th></tr>
+    <tr><td>точка · запятая · двоеточие · точка с запятой</td><td>. , : ;</td></tr>
+    <tr><td>вопросительный знак · восклицательный знак · многоточие</td><td>? ! …</td></tr>
+    <tr><td>тире · дефис</td><td>— -</td></tr>
+    <tr><td>открыть / закрыть скобку · открыть / закрыть кавычки</td><td>( ) « »</td></tr>
+    <tr><td>новая строка · новый абзац</td><td>перенос строки / абзац</td></tr>
+    <tr><td>удали последнее · отмени последнее</td><td>удалить последнюю вставленную фразу</td></tr>
+    <tr><td>стоп запись · стоп</td><td>остановить диктовку</td></tr>
+    <tr><td>English: period, comma, question mark, new line, new paragraph, scratch that, stop listening</td><td></td></tr>
+  </table>
+  <p class="hint">«Точка зрения», «точка доступа» и подобные выражения командой не считаются.</p>
+</section>
+
+<section class="card" id="sec-privacy">
+  <h2>Конфиденциальность</h2>
+  <p>Расширение ничего не собирает и не отправляет разработчику. Звук идёт только выбранному движку: Google (Web Speech или Cloud с вашим ключом) либо никуда (офлайн-режим). Настройки и ключ хранятся локально в браузере.</p>
+</section>
+</main>
+<footer>Офлайн-распознавание: <a href="https://alphacephei.com/vosk/" target="_blank" rel="noopener">Vosk</a> (Apache 2.0), <a href="https://github.com/ccoreilly/vosk-browser" target="_blank" rel="noopener">vosk-browser</a>.</footer>
+
+<script src="../common/defaults.js"></script>
+<script src="../common/textproc.js"></script>
+<script src="../common/modeldb.js"></script>
+<script src="options.js"></script>
+<script src="../content/content.js"></script>
+</body>
+</html>
